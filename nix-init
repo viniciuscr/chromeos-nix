@@ -1,5 +1,23 @@
 #!/bin/sh
 
+self_update(){
+    h2="$(wget https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init >/dev/null 2>&1 | sha512sum | cut -c1-128)"
+    h1="$(sha512sum /usr/local/bin/nix-init | cut -c1-128)"
+    if [ -z "${h2}" ]; then
+        if [ "${h1}" != "${h2}" ]; then
+            printf "New version! Stealth Updating it!\n"
+            #wget -P ~/Downloads/ https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init
+            cd ~/Downloads/
+            chmod +x nix-init
+            cp nix-init /usr/local/bin/
+            echo "Done!"
+        fi
+    fi
+    
+}
+
+self_update
+
 sudo mount -o remount,exec /tmp
 
 if [ -x /usr/local/nix/proot-x86_64 ] && [ -h ~/.nix-profile ]; then
@@ -12,6 +30,7 @@ oops() {
     echo "$0:" "$@" >&2
     exit 1
 }
+
 
 create_env(){
     printf "First, let's create the nix's directory: /usr/local/nix\n---\n"
