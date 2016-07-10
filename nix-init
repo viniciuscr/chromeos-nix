@@ -6,7 +6,7 @@ self_update(){
     if [ -z "${h2}" ]; then
         if [ "${h1}" != "${h2}" ]; then
             printf "New version! Stealth Updating it!\n"
-            #wget -P ~/Downloads/ https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init
+            wget -P ~/Downloads/ https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init
             cd ~/Downloads/
             chmod +x nix-init
             cp nix-init /usr/local/bin/
@@ -16,12 +16,18 @@ self_update(){
     
 }
 
-self_update
+#self_update
 
 sudo mount -o remount,exec /tmp
 
 if [ -x /usr/local/nix/proot-x86_64 ] && [ -h ~/.nix-profile ]; then
-  printf "Nix is ready!\n"
+  printf "Nix is ready to roll out!\n"
+  LANG="C"
+  LANGUAGE="C"
+  LC_ALL="C"
+  export LANG
+  export LANGUAGE
+  export LC_ALL
   exec /usr/local/nix/proot-x86_64 -b /usr/local/nix:/nix bash --init-file ~/.nix-profile/etc/profile.d/nix.sh
 fi
 
