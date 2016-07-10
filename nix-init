@@ -1,0 +1,80 @@
+#!/bin/sh
+
+sudo mount -o remount,exec /tmp
+
+if [ -x /usr/local/nix/proot-x86_64 ] && [ -h ~/.nix-profile ]; then
+  printf "Nix is ready!\n"
+  exec /usr/local/nix/proot-x86_64 -b /usr/local/nix:/nix bash --init-file ~/.nix-profile/etc/profile.d/nix.sh
+fi
+
+
+oops() {
+    echo "$0:" "$@" >&2
+    exit 1
+}
+
+create_env(){
+    printf "First, let's create the nix's directory: /usr/local/nix\n---\n"
+    sudo mkdir -p /usr/local/nix
+    printf "Now, we set the nix's owner to our friend chronos, so that we don't have to ask for root's permission all the time.\n---\n"
+    sudo chown chronos:chronos /usr/local/nix
+    cd /usr/local/nix
+}
+
+download_nix(){
+    printf "Ok, next step is to download nix's binaries.\n"
+    case "$(uname -s).$(uname -m)" in
+        Linux.x86_64) system=x86_64-linux; hash=3934610bdc68b276a362b9079b18dd6d28221a727ec71ed3a3a11fddcee59dd2fa1ac401b3a25d668e880c04bcd4c971cf82861820b5ff678353f7e7ba1bfc41;;
+        Linux.i?86) system=i686-linux; hash=fa52b31a63603be5370c2a25ca9b192fbb8f50038904a9a4d590a6abefdb3b46c362d1f49dbee5fa09175ebdcbb84317615a3d647197da1485f5543d7ff7fc0a;;
+        Darwin.x86_64) system=x86_64-darwin; hash=0af3f2ca025fae9e026ce0ad53852d05faa0f11cf2a3be239d5dfec1a2c7f47cb9a43a17cd4c5894064fa9e99b444ab80b9ca0659011a21dc79269758c631ef6;;
+        *) oops "sorry, there is no binary distribution of Nix for your platform";;
+    esac
+
+    version="nix-1.11.2"
+    url="https://nixos.org/releases/nix/$version/$version-$system.tar.bz2"
+    
+    if [ ! -f ~/Downloads/$version-$system.tar.bz2 ]; then
+        wget -P ~/Downloads/ $url
+    fi
+
+    printf "Done!\n---\n"
+}
+
+check_hash(){
+    printf "Just checking the hash\n"
+    hash2="$(sha512sum  ~/Downloads/$version-$system.tar.bz2 | cut -c1-128)"
+    
+    if [ "$hash" != "${hash2}" ]; then
+        rm ~/Downloads/$version-$system.tar.bz2
+        oops "SHA-512 hash mismatch in '$url'; expected $hash, got $hash2"
+    fi
+    
+    printf "Everything look just fine.\n---\n"
+
+}
+
+setup_proot(){
+    printf "Good, now we are going to download this amazing magic guy called proot\n---\n"
+    if [ ! -f ~/Downloads/proot-x86_64 ]; then
+        wget -P ~/Downloads/ http://static.proot.me/proot-x86_64
+    fi
+    cp ~/Downloads/proot-x86_64 .
+    chmod u+x proot-x86_64
+}
+
+create_env
+
+download_nix
+
+check_hash
+
+printf "Extracting nix...\n---\n"
+tar -C /usr/local/ --transform='s|^nix-[^/]*|nix|' -xf ~/Downloads/$version-$system.tar.bz2
+
+setup_proot
+
+echo "Run Nix run!\n---\n"
+./proot-x86_64 -b /usr/local/nix:/nix /nix/install
+
+echo "Installation successful."
+echo "Type down nix-init and enjoy it ;)."
