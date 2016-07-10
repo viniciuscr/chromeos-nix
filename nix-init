@@ -49,7 +49,7 @@ check_hash(){
         oops "SHA-512 hash mismatch in '$url'; expected $hash, got $hash2"
     fi
     
-    printf "Everything look just fine.\n---\n"
+    printf "Everything looks just fine.\n---\n"
 
 }
 
@@ -68,13 +68,21 @@ download_nix
 
 check_hash
 
-printf "Extracting nix...\n---\n"
+printf "Extracting nix..."
 tar -C /usr/local/ --transform='s|^nix-[^/]*|nix|' -xf ~/Downloads/$version-$system.tar.bz2
+printf "\n---\n"
 
 setup_proot
 
-echo "Run Nix run!\n---\n"
-./proot-x86_64 -b /usr/local/nix:/nix /nix/install
 
-echo "Installation successful."
-echo "Type down nix-init and enjoy it ;)."
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
+
+printf "Finally, Running install script!\n---\n"
+echo "Lots of evil things rolling out on the backstage..."
+nohup ./proot-x86_64 -b /usr/local/nix:/nix /nix/install  >/dev/null 2>&1
+printf "\n\n\n\n${YELLOW}Wait for it...${NC}\n\n"
+printf "\n---\nInstallation ${GREEN}successful${NC}.\n\n"
+echo "Type down ${BLUE}nix-init${NC} and enjoy it ;)\n"
