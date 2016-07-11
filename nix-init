@@ -6,6 +6,7 @@ self_update(){
     if [ -z "${h2}" ]; then
         if [ "${h1}" != "${h2}" ]; then
             printf "New version! Stealth Updating it!\n"
+            rm ~/Downloads/nix-init
             wget -P ~/Downloads/ https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init
             cd ~/Downloads/
             chmod +x nix-init
@@ -16,7 +17,7 @@ self_update(){
     
 }
 
-#self_update
+self_update
 
 sudo mount -o remount,exec /tmp
 
