@@ -1,4 +1,5 @@
 #!/bin/sh
+prefix='/mnt/stateful_partition/nix'
 
 self_update(){
     h2="$(wget https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init >/dev/null 2>&1 | sha512sum | cut -c1-128)"
@@ -20,8 +21,10 @@ self_update(){
 self_update
 
 sudo mount -o remount,exec /tmp
+sudo mount -i -o "remount,exec" /mnt/stateful_partition
 
-if [ -x /usr/local/nix/proot-x86_64 ] && [ -h ~/.nix-profile ]; then
+
+if [ -x "$prefix/proot-x86_64" ] && [ -h ~/.nix-profile ]; then
   printf "Nix is ready to roll out!\n"
   LANG="C"
   LANGUAGE="C"
@@ -29,7 +32,7 @@ if [ -x /usr/local/nix/proot-x86_64 ] && [ -h ~/.nix-profile ]; then
   export LANG
   export LANGUAGE
   export LC_ALL
-  exec /usr/local/nix/proot-x86_64 -b /usr/local/nix:/nix bash --init-file ~/.nix-profile/etc/profile.d/nix.sh
+  exec "$prefix/proot-x86_64" -b "$prefix:/nix" bash --init-file ~/.nix-profile/etc/profile.d/nix.sh
 fi
 
 
@@ -40,11 +43,15 @@ oops() {
 
 
 create_env(){
-    printf "First, let's create the nix's directory: /usr/local/nix\n---\n"
-    sudo mkdir -p /usr/local/nix
+    printf "First, let's create the nix's directory: $prefix\n---\n"
+    sudo mkdir -p "$prefix"
+    if [ ! -x "$prefix" ]; then
+        oops "Can't create root directory"
+    fi
+        
     printf "Now, we set the nix's owner to our friend chronos, so that we don't have to ask for root's permission all the time.\n---\n"
-    sudo chown chronos:chronos /usr/local/nix
-    cd /usr/local/nix
+    sudo chown chronos:chronos "$prefix"
+    cd $prefix
 }
 
 download_nix(){
@@ -53,7 +60,7 @@ download_nix(){
         Linux.x86_64) system=x86_64-linux; hash=3934610bdc68b276a362b9079b18dd6d28221a727ec71ed3a3a11fddcee59dd2fa1ac401b3a25d668e880c04bcd4c971cf82861820b5ff678353f7e7ba1bfc41;;
         Linux.i?86) system=i686-linux; hash=fa52b31a63603be5370c2a25ca9b192fbb8f50038904a9a4d590a6abefdb3b46c362d1f49dbee5fa09175ebdcbb84317615a3d647197da1485f5543d7ff7fc0a;;
         Darwin.x86_64) system=x86_64-darwin; hash=0af3f2ca025fae9e026ce0ad53852d05faa0f11cf2a3be239d5dfec1a2c7f47cb9a43a17cd4c5894064fa9e99b444ab80b9ca0659011a21dc79269758c631ef6;;
-        *) oops "sorry, there is no binary distribution of Nix for your platform";;
+        *) oops "sorry, there is no binary distribution of Nix for your platform";
     esac
 
     version="nix-1.11.2"
@@ -95,7 +102,7 @@ download_nix
 check_hash
 
 printf "Extracting nix..."
-tar -C /usr/local/ --transform='s|^nix-[^/]*|nix|' -xf ~/Downloads/$version-$system.tar.bz2
+tar -C "$prefix" --transform='s|^nix-[^/]*|nix|' -xf ~/Downloads/$version-$system.tar.bz2
 printf "\n---\n"
 
 setup_proot
@@ -108,7 +115,7 @@ NC='\033[0m' # No Color
 
 printf "Finally, Running install script!\n---\n"
 echo "Lots of evil things rolling out on the backstage..."
-nohup ./proot-x86_64 -b /usr/local/nix:/nix /nix/install  >/dev/null 2>&1
+nohup ./proot-x86_64 -b "$prefix:/nix" /nix/install  >/dev/null 2>&1
 printf "\n\n\n\n${YELLOW}Wait for it...${NC}\n\n"
 printf "\n---\nInstallation ${GREEN}successful${NC}.\n\n"
 echo "Type down ${BLUE}nix-init${NC} and enjoy it ;)\n"
