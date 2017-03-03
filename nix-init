@@ -78,7 +78,7 @@ check_hash(){
     hash2="$(sha256sum  ~/Downloads/$version-$system.tar.bz2 | cut -c1-64)"
     
     if [ "${hash}" != "${hash2}" ]; then
-        #rm ~/Downloads/$version-$system.tar.bz2
+        rm ~/Downloads/$version-$system.tar.bz2
         oops "SHA-256 hash mismatch in '$url'; expected $hash, got $hash2"
     fi
     
