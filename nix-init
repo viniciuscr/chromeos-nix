@@ -57,13 +57,13 @@ create_env(){
 download_nix(){
     printf "Ok, next step is to download nix's binaries.\n"
     case "$(uname -s).$(uname -m)" in
-        Linux.x86_64) system=x86_64-linux; hash=3934610bdc68b276a362b9079b18dd6d28221a727ec71ed3a3a11fddcee59dd2fa1ac401b3a25d668e880c04bcd4c971cf82861820b5ff678353f7e7ba1bfc41;;
-        Linux.i?86) system=i686-linux; hash=fa52b31a63603be5370c2a25ca9b192fbb8f50038904a9a4d590a6abefdb3b46c362d1f49dbee5fa09175ebdcbb84317615a3d647197da1485f5543d7ff7fc0a;;
-        Darwin.x86_64) system=x86_64-darwin; hash=0af3f2ca025fae9e026ce0ad53852d05faa0f11cf2a3be239d5dfec1a2c7f47cb9a43a17cd4c5894064fa9e99b444ab80b9ca0659011a21dc79269758c631ef6;;
+        Linux.x86_64) system=x86_64-linux; hash=ede13ec7db7c2c8228cbdab48586f8abd3d43a8e642c7a3646ae92ad9e2cede1;;
+        Linux.i?86) system=i686-linux; hash=b20231f3e5fde02cd03cbeed31831e7beceb2698fc6d08a2eb2431cfe3efea99;;
+        Darwin.x86_64) system=x86_64-darwin; hash=7c5f540358cb9cf5885d049e1723df7a66997609d71ce262e01a3ec8e531a7f3;;
         *) oops "sorry, there is no binary distribution of Nix for your platform";
     esac
 
-    version="nix-1.11.2"
+    version="nix-1.11.7"
     url="https://nixos.org/releases/nix/$version/$version-$system.tar.bz2"
     
     if [ ! -f ~/Downloads/$version-$system.tar.bz2 ]; then
@@ -75,11 +75,11 @@ download_nix(){
 
 check_hash(){
     printf "Just checking the hash\n"
-    hash2="$(sha512sum  ~/Downloads/$version-$system.tar.bz2 | cut -c1-128)"
+    hash2="$(sha256sum  ~/Downloads/$version-$system.tar.bz2 | cut -c1-64)"
     
-    if [ "$hash" != "${hash2}" ]; then
-        rm ~/Downloads/$version-$system.tar.bz2
-        oops "SHA-512 hash mismatch in '$url'; expected $hash, got $hash2"
+    if [ "${hash}" != "${hash2}" ]; then
+        #rm ~/Downloads/$version-$system.tar.bz2
+        oops "SHA-256 hash mismatch in '$url'; expected $hash, got $hash2"
     fi
     
     printf "Everything looks just fine.\n---\n"
