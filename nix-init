@@ -7,7 +7,7 @@ self_update(){
     if [ -z "${h2}" ]; then
         if [ "${h1}" != "${h2}" ]; then
             printf "New version! Stealth Updating it!\n"
-            rm $HOME/Downloads/nix-init
+            #rm $HOME/Downloads/nix-init
             wget -P $HOME/Downloads/ https://raw.githubusercontent.com/viniciuscr/chromeos-nix/master/nix-init
             cd $HOME/Downloads/
             chmod +x nix-init
@@ -32,7 +32,7 @@ if [ -x "$prefix/proot-$(uname -m)" ] && [ -h ~/.nix-profile ]; then
   export LANG
   export LANGUAGE
   export LC_ALL
-  exec "$prefix/proot-$(uname -m)" -b "$prefix:/nix" bash --init-file ~/.nix-profile/etc/profile.d/nix.sh
+  exec "$prefix/proot-$(uname -m)" -b "$prefix:/nix" bash --init-file $HOME/.nix-profile/etc/profile.d/nix.sh
 fi
 
 
@@ -43,6 +43,7 @@ oops() {
 
 
 create_env(){
+   
     printf "First, let's create the nix's directory: $prefix\n---\n"
     sudo mkdir -p "$prefix"
     if [ ! -x "$prefix" ]; then
@@ -66,8 +67,8 @@ download_nix(){
     version="nix-1.11.7"
     url="https://nixos.org/releases/nix/$version/$version-$system.tar.bz2"
     
-    if [ ! -f ~/Downloads/$version-$system.tar.bz2 ]; then
-        wget -P ~/Downloads/ $url
+    if [ ! -f $HOME/Downloads/$version-$system.tar.bz2 ]; then
+        wget -P $HOME/Downloads/ $url
     fi
 
     printf "Done!\n---\n"
@@ -115,7 +116,7 @@ NC='\033[0m' # No Color
 
 printf "Finally, Running install script!\n---\n"
 echo "Lots of evil things rolling out on the backstage..."
-nohup $prefix/proot-$(uname -m) -b $prefix/nix/:/nix bash ./nix/install 2> /dev/null
+nohup $prefix/proot-$(uname -m) -b $prefix:/nix bash ./nix/install 2> /dev/null
 printf "\n\n\n\n${YELLOW}Wait for it...${NC}\n\n"
 printf "\n---\nInstallation ${GREEN}successful${NC}.\n\n"
 echo "Type down ${BLUE}nix-init${NC} and enjoy it ;)\n"
