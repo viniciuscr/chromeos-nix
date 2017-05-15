@@ -32,6 +32,7 @@ if [ -x "$prefix/proot-$(uname -m)" ] && [ -h ~/.nix-profile ]; then
   export LANG
   export LANGUAGE
   export LC_ALL
+  PAGER=less
   exec "$prefix/proot-$(uname -m)" -b "$prefix:/nix" bash --init-file $HOME/.nix-profile/etc/profile.d/nix.sh
 fi
 
